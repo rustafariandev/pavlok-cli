@@ -1,6 +1,7 @@
 [package]
 name = "pavlok-client"
 description = "Async client for the Pavlok v5 HTTP API"
+readme = "README.md"
 version.workspace = true
 edition.workspace = true
 

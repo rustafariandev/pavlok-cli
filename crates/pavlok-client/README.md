@@ -1,0 +1,63 @@
+# pavlok-client
+
+A small async Rust client for the [Pavlok](https://pavlok.com) v5 HTTP API.
+
+It wraps the endpoints needed to authenticate and drive a Pavlok device — send
+stimuli (zap / beep / vibe), read the current account, and list recently
+received stimuli — with a minimal dependency footprint (just `reqwest` +
+`serde`). It powers the [`pavlok-cli`](../pavlok-cli) binary but is usable on its
+own.
+
+## Add it
+
+```toml
+[dependencies]
+pavlok-client = "0.1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+```
+
+## Usage
+
+```rust
+use pavlok_client::{PavlokClient, StimulusType};
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    // Exchange credentials for a bearer token (or bring your own).
+    let client = PavlokClient::new(None);
+    let token = client.login("me@example.com", "hunter2").await?;
+
+    // Authenticated client.
+    let client = PavlokClient::new(Some(token));
+
+    // Trigger a vibration at intensity 40 (valid range: 1-100).
+    client
+        .send_stimulus(StimulusType::Vibe, 40, Some("break time".into()))
+        .await?;
+
+    // Read account / history as raw JSON (shapes are undocumented upstream).
+    let user = client.whoami().await?;
+    let history = client.history().await?;
+    println!("{user}\n{history}");
+
+    Ok(())
+}
+```
+
+## API
+
+| Method | Description |
+|---|---|
+| `PavlokClient::new(token)` | Client against the default base URL (`https://api.pavlok.com`). |
+| `PavlokClient::with_base_url(url, token)` | Client against a custom base URL (staging or a mock server in tests). |
+| `login(email, password) -> String` | Obtain a bearer token. |
+| `send_stimulus(kind, value, reason)` | Send a zap/beep/vibe; `value` is validated to `1..=100` before any request. |
+| `whoami() -> serde_json::Value` | Fetch the current account. |
+| `history() -> serde_json::Value` | Fetch recently received stimuli. |
+
+`StimulusType` (`Zap` / `Beep` / `Vibe`) serializes to the lowercase strings the
+API expects and is the single source of truth for the stimulus kinds.
+
+## License
+
+Part of the `pavlok-cli` project.
