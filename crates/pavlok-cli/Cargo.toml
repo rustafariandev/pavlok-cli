@@ -1,6 +1,7 @@
 [package]
 name = "pavlok-cli"
 description = "Control a Pavlok device from the terminal and expose it to AI via MCP"
+readme = "README.md"
 version.workspace = true
 edition.workspace = true
 
