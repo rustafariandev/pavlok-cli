@@ -79,13 +79,20 @@ struct StimulusBody {
 }
 
 impl PavlokClient {
-    /// Create a client. `token` may be `None` for the login flow (which does not
-    /// require authentication) or for surfacing a friendly error otherwise.
+    /// Create a client against the default Pavlok base URL. `token` may be
+    /// `None` for the login flow (which does not require authentication) or for
+    /// surfacing a friendly error otherwise.
     pub fn new(token: Option<String>) -> Self {
+        Self::with_base_url(DEFAULT_BASE_URL, token)
+    }
+
+    /// Create a client against a custom base URL (e.g. a staging server or, in
+    /// tests, a mock server). The URL should not have a trailing slash.
+    pub fn with_base_url(base_url: impl Into<String>, token: Option<String>) -> Self {
         Self {
             http: reqwest::Client::new(),
             token,
-            base_url: DEFAULT_BASE_URL.to_string(),
+            base_url: base_url.into(),
         }
     }
 
