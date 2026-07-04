@@ -966,7 +966,7 @@ dependencies = [
  "anyhow",
  "clap",
  "directories",
- "reqwest",
+ "pavlok-client",
  "rmcp",
  "rpassword",
  "schemars",
@@ -976,6 +976,16 @@ dependencies = [
  "toml",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "pavlok-client"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "reqwest",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

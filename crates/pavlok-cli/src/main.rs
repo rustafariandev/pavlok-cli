@@ -1,17 +1,16 @@
 mod cli;
 mod config;
 mod mcp;
-mod pavlok;
 
 use std::io::{self, Write};
 use std::sync::Arc;
 
 use anyhow::Result;
 use clap::Parser;
+use pavlok_client::{PavlokClient, StimulusType};
 use rmcp::{ServiceExt, transport::stdio};
 
 use cli::{Cli, Commands};
-use pavlok::{PavlokClient, StimulusType};
 
 #[tokio::main]
 async fn main() -> Result<()> {

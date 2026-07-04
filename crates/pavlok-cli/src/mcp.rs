@@ -14,7 +14,7 @@ use rmcp::{
 };
 use serde::Deserialize;
 
-use crate::pavlok::{PavlokClient, StimulusType};
+use pavlok_client::{PavlokClient, StimulusType};
 
 /// Parameters shared by every stimulus tool.
 #[derive(Debug, Deserialize, schemars::JsonSchema)]

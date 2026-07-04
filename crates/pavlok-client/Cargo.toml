@@ -1,0 +1,11 @@
+[package]
+name = "pavlok-client"
+description = "Async client for the Pavlok v5 HTTP API"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+reqwest = { version = "0.13.4", default-features = false, features = ["json", "rustls", "http2", "charset"] }

@@ -5,6 +5,16 @@ trigger your device's stimuli (zap / beep / vibe) from the terminal, and can run
 as an **MCP server** so an AI assistant (e.g. Claude) can trigger stimuli through
 tool calls.
 
+## Project layout
+
+A Cargo workspace with two crates:
+
+- `crates/pavlok-client` — a standalone async library for the Pavlok v5 API
+  (`PavlokClient`, `StimulusType`). Depends only on reqwest/serde; reusable on
+  its own.
+- `crates/pavlok-cli` — the `pavlok-cli` binary (CLI + MCP server) that depends
+  on the library.
+
 ## Build
 
 ```sh
