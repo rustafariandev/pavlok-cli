@@ -29,7 +29,7 @@ async fn main() -> Result<()> {
         Commands::Vibe { value, reason } => stimulus(StimulusType::Vibe, value, reason).await,
         Commands::Whoami => whoami().await,
         Commands::History => history().await,
-        Commands::Mcp => serve_mcp().await,
+        Commands::Mcp { tools } => serve_mcp(tools).await,
     }
 }
 
@@ -70,9 +70,16 @@ async fn history() -> Result<()> {
     Ok(())
 }
 
-async fn serve_mcp() -> Result<()> {
+async fn serve_mcp(tools: Vec<cli::McpTool>) -> Result<()> {
     let client = Arc::new(PavlokClient::new(config::resolve_token()?));
-    let service = mcp::PavlokServer::new(client).serve(stdio()).await?;
+    let server = if tools.is_empty() {
+        mcp::PavlokServer::new(client)
+    } else {
+        let allowed: Vec<&str> = tools.iter().map(|t| t.name()).collect();
+        tracing::info!("MCP server restricted to tools: {}", allowed.join(", "));
+        mcp::PavlokServer::with_tools(client, &allowed)
+    };
+    let service = server.serve(stdio()).await?;
     service.waiting().await?;
     Ok(())
 }

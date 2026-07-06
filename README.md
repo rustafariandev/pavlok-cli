@@ -64,10 +64,20 @@ It exposes three tools — `zap`, `beep`, `vibe` — each taking an intensity
 `value` (1–100) and an optional `reason`. Account/history data is intentionally
 **not** exposed to the AI.
 
+Restrict which tools the server exposes with `--tools` (comma-separated). Any
+tool left out is removed from both `tools/list` and `tools/call`, so the AI can
+neither see nor invoke it:
+
+```sh
+PAVLOK_TOKEN="your-token" pavlok-cli mcp --tools beep,vibe   # no zap
+```
+
 Register it with Claude Code:
 
 ```sh
 claude mcp add pavlok --env PAVLOK_TOKEN=your-token -- /absolute/path/to/pavlok-cli mcp
+# or, to expose only some tools:
+claude mcp add pavlok --env PAVLOK_TOKEN=your-token -- /absolute/path/to/pavlok-cli mcp --tools beep,vibe
 ```
 
 Or add it to a client's MCP config manually:

@@ -1,6 +1,25 @@
 //! Command-line interface definition (clap derive).
 
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
+
+/// A stimulus tool that the MCP server can expose.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
+pub enum McpTool {
+    Zap,
+    Beep,
+    Vibe,
+}
+
+impl McpTool {
+    /// The name the tool is registered under in the MCP router.
+    pub fn name(self) -> &'static str {
+        match self {
+            McpTool::Zap => "zap",
+            McpTool::Beep => "beep",
+            McpTool::Vibe => "vibe",
+        }
+    }
+}
 
 #[derive(Parser)]
 #[command(
@@ -51,5 +70,10 @@ pub enum Commands {
     /// Print recently received stimuli as JSON
     History,
     /// Run as an MCP server over stdio (for AI assistants)
-    Mcp,
+    Mcp {
+        /// Restrict the server to these tools (comma-separated, e.g.
+        /// `--tools beep,vibe`). If omitted, all tools are exposed.
+        #[arg(long, value_enum, value_delimiter = ',')]
+        tools: Vec<McpTool>,
+    },
 }

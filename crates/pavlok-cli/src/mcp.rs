@@ -36,10 +36,27 @@ pub struct PavlokServer {
 
 #[tool_router]
 impl PavlokServer {
+    /// Build a server exposing every stimulus tool.
     pub fn new(client: Arc<PavlokClient>) -> Self {
         Self {
             client,
             tool_router: Self::tool_router(),
+        }
+    }
+
+    /// Build a server exposing only the named tools.
+    ///
+    /// `allowed` is a list of tool names (e.g. `["beep", "vibe"]`). Any tool
+    /// not in the list is dropped from the router, which removes it from both
+    /// `tools/list` and `tools/call` — a filtered-out tool cannot be invoked.
+    pub fn with_tools(client: Arc<PavlokClient>, allowed: &[&str]) -> Self {
+        let mut tool_router = Self::tool_router();
+        tool_router
+            .map
+            .retain(|name, _| allowed.contains(&name.as_ref()));
+        Self {
+            client,
+            tool_router,
         }
     }
 
@@ -95,7 +112,44 @@ impl PavlokServer {
     }
 }
 
-#[tool_handler]
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn tool_names(server: &PavlokServer) -> Vec<String> {
+        let mut names: Vec<String> = server
+            .tool_router
+            .map
+            .keys()
+            .map(|k| k.to_string())
+            .collect();
+        names.sort();
+        names
+    }
+
+    #[test]
+    fn new_exposes_all_tools() {
+        let server = PavlokServer::new(Arc::new(PavlokClient::new(None)));
+        assert_eq!(tool_names(&server), ["beep", "vibe", "zap"]);
+    }
+
+    #[test]
+    fn with_tools_restricts_to_allowlist() {
+        let server = PavlokServer::with_tools(Arc::new(PavlokClient::new(None)), &["beep", "vibe"]);
+        assert_eq!(tool_names(&server), ["beep", "vibe"]);
+    }
+
+    #[test]
+    fn with_tools_ignores_unknown_names() {
+        let server = PavlokServer::with_tools(Arc::new(PavlokClient::new(None)), &["zap", "bogus"]);
+        assert_eq!(tool_names(&server), ["zap"]);
+    }
+}
+
+// `router = self.tool_router` makes list/call use our (possibly filtered)
+// instance router; the macro otherwise defaults to a fresh `Self::tool_router()`
+// with every tool, which would ignore `with_tools`.
+#[tool_handler(router = self.tool_router)]
 impl ServerHandler for PavlokServer {
     fn get_info(&self) -> ServerInfo {
         // `Implementation` is #[non_exhaustive]; build from default then set fields.
