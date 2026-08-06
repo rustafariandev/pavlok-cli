@@ -2,8 +2,14 @@
 name = "pavlok-cli"
 description = "Control a Pavlok device from the terminal and expose it to AI via MCP"
 readme = "README.md"
+keywords = ["pavlok", "cli", "mcp", "wearable"]
+categories = ["command-line-utilities"]
 version.workspace = true
 edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
 
 [[bin]]
 name = "pavlok-cli"

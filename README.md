@@ -5,6 +5,11 @@ trigger your device's stimuli (zap / beep / vibe) from the terminal, and can run
 as an **MCP server** so an AI assistant (e.g. Claude) can trigger stimuli through
 tool calls.
 
+## Get a Pavlok
+
+You'll need a Pavlok device to use this tool. You can get your Pavlok at
+[pavlok.com/RUSTAFARIANDEV](https://pavlok.com/RUSTAFARIANDEV).
+
 ## Project layout
 
 A Cargo workspace with two crates:
@@ -15,7 +20,27 @@ A Cargo workspace with two crates:
 - `crates/pavlok-cli` — the `pavlok-cli` binary (CLI + MCP server) that depends
   on the library.
 
-## Build
+## Install
+
+Prebuilt binaries for Linux, macOS, and Windows are attached to every
+[release](https://github.com/rustafariandev/pavlok-cli/releases) — download,
+extract, and put `pavlok-cli` on your `PATH`. The Linux builds are statically
+linked against musl, so they run on any distribution.
+
+Or install from source (needs Rust 1.88+):
+
+```sh
+cargo install pavlok-cli
+```
+
+macOS binaries are not code-signed, so the first run needs the quarantine
+attribute cleared:
+
+```sh
+xattr -d com.apple.quarantine ./pavlok-cli
+```
+
+## Build from a checkout
 
 ```sh
 cargo build --release
@@ -96,7 +121,21 @@ Or add it to a client's MCP config manually:
 
 ## Notes
 
+- **Keep your token out of shell history.** The `--env PAVLOK_TOKEN=...` and
+  `export PAVLOK_TOKEN=...` forms above are convenient, but they leave a bearer
+  token in your shell history and, for the `claude mcp add` case, in the MCP
+  client's config file in plaintext. Prefer `pavlok-cli login`, which stores the
+  token at `~/.config/pavlok-cli/config.toml` with `0600` permissions; the MCP
+  server picks it up from there with no `--env` needed.
 - All logging goes to **stderr**; stdout carries only command output and MCP
   JSON-RPC, so the protocol is never corrupted.
+- TLS uses `rustls` with the pure-Rust `ring` backend — no cmake, no system
+  OpenSSL. Certificate verification uses the host's trust store, so the static
+  Linux builds still need `/etc/ssl/certs` present (they will not work in a
+  `scratch`/distroless container).
 - Built on the official [`rmcp`](https://crates.io/crates/rmcp) SDK and
   [`reqwest`](https://crates.io/crates/reqwest).
+
+## License
+
+MIT — see [LICENSE](LICENSE).

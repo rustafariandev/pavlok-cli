@@ -38,10 +38,10 @@ impl Config {
 
 /// Resolve a token from the environment, then the config file.
 pub fn resolve_token() -> Result<Option<String>> {
-    if let Ok(token) = std::env::var("PAVLOK_TOKEN") {
-        if !token.trim().is_empty() {
-            return Ok(Some(token));
-        }
+    if let Ok(token) = std::env::var("PAVLOK_TOKEN")
+        && !token.trim().is_empty()
+    {
+        return Ok(Some(token));
     }
     Ok(Config::load()?.token)
 }
@@ -49,7 +49,7 @@ pub fn resolve_token() -> Result<Option<String>> {
 /// Resolve a token or fail with an actionable message.
 pub fn require_token() -> Result<String> {
     resolve_token()?.context(
-        "no Pavlok token found — run `pavlok login` or set the PAVLOK_TOKEN environment variable",
+        "no Pavlok token found — run `pavlok-cli login` or set the PAVLOK_TOKEN environment variable",
     )
 }
 

@@ -93,9 +93,7 @@ impl PavlokServer {
         self.fire(StimulusType::Zap, args).await
     }
 
-    #[tool(
-        description = "Make the Pavlok device beep. `value` is intensity/volume from 1 to 100."
-    )]
+    #[tool(description = "Make the Pavlok device beep. `value` is intensity/volume from 1 to 100.")]
     async fn beep(
         &self,
         Parameters(args): Parameters<StimulusArgs>,
@@ -109,6 +107,26 @@ impl PavlokServer {
         Parameters(args): Parameters<StimulusArgs>,
     ) -> Result<CallToolResult, McpError> {
         self.fire(StimulusType::Vibe, args).await
+    }
+}
+
+// `router = self.tool_router` makes list/call use our (possibly filtered)
+// instance router; the macro otherwise defaults to a fresh `Self::tool_router()`
+// with every tool, which would ignore `with_tools`.
+#[tool_handler(router = self.tool_router)]
+impl ServerHandler for PavlokServer {
+    fn get_info(&self) -> ServerInfo {
+        // `Implementation` is #[non_exhaustive]; build from default then set fields.
+        let mut server_info = Implementation::default();
+        server_info.name = env!("CARGO_PKG_NAME").to_string();
+        server_info.version = env!("CARGO_PKG_VERSION").to_string();
+
+        ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
+            .with_server_info(server_info)
+            .with_instructions(
+                "Trigger Pavlok stimuli. Tools: zap (electric), beep, vibe — each takes an \
+                 intensity `value` from 1 to 100 and an optional `reason`.",
+            )
     }
 }
 
@@ -143,25 +161,5 @@ mod tests {
     fn with_tools_ignores_unknown_names() {
         let server = PavlokServer::with_tools(Arc::new(PavlokClient::new(None)), &["zap", "bogus"]);
         assert_eq!(tool_names(&server), ["zap"]);
-    }
-}
-
-// `router = self.tool_router` makes list/call use our (possibly filtered)
-// instance router; the macro otherwise defaults to a fresh `Self::tool_router()`
-// with every tool, which would ignore `with_tools`.
-#[tool_handler(router = self.tool_router)]
-impl ServerHandler for PavlokServer {
-    fn get_info(&self) -> ServerInfo {
-        // `Implementation` is #[non_exhaustive]; build from default then set fields.
-        let mut server_info = Implementation::default();
-        server_info.name = env!("CARGO_PKG_NAME").to_string();
-        server_info.version = env!("CARGO_PKG_VERSION").to_string();
-
-        ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
-            .with_server_info(server_info)
-            .with_instructions(
-                "Trigger Pavlok stimuli. Tools: zap (electric), beep, vibe — each takes an \
-                 intensity `value` from 1 to 100 and an optional `reason`.",
-            )
     }
 }

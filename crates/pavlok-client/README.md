@@ -5,14 +5,19 @@ A small async Rust client for the [Pavlok](https://pavlok.com) v5 HTTP API.
 It wraps the endpoints needed to authenticate and drive a Pavlok device — send
 stimuli (zap / beep / vibe), read the current account, and list recently
 received stimuli — with a minimal dependency footprint (just `reqwest` +
-`serde`). It powers the [`pavlok-cli`](../pavlok-cli) binary but is usable on its
-own.
+`serde`). It powers the
+[`pavlok-cli`](https://github.com/rustafariandev/pavlok-cli/tree/main/crates/pavlok-cli)
+binary but is usable on its own.
+
+TLS is provided by `rustls` with the pure-Rust `ring` backend, so building this
+crate needs no cmake and no system OpenSSL. The provider is installed
+automatically on first client construction.
 
 ## Add it
 
 ```toml
 [dependencies]
-pavlok-client = "0.1"
+pavlok-client = "1.0"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 ```
 
@@ -60,4 +65,5 @@ API expects and is the single source of truth for the stimulus kinds.
 
 ## License
 
-Part of the `pavlok-cli` project.
+MIT — see [LICENSE](LICENSE). Part of the
+[`pavlok-cli`](https://github.com/rustafariandev/pavlok-cli) project.

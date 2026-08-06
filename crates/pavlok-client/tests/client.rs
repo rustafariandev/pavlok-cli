@@ -17,7 +17,10 @@ fn stimulus_type_as_str_matches_api_strings() {
 
 #[test]
 fn stimulus_type_serializes_lowercase() {
-    assert_eq!(serde_json::to_value(StimulusType::Zap).unwrap(), json!("zap"));
+    assert_eq!(
+        serde_json::to_value(StimulusType::Zap).unwrap(),
+        json!("zap")
+    );
     assert_eq!(
         serde_json::to_value(StimulusType::Beep).unwrap(),
         json!("beep")
@@ -132,9 +135,7 @@ async fn api_error_surfaces_status_and_body() {
     let server = MockServer::start().await;
     Mock::given(method("POST"))
         .and(path("/api/v5/stimulus/send"))
-        .respond_with(
-            ResponseTemplate::new(422).set_body_string("{\"error\":\"nope\"}"),
-        )
+        .respond_with(ResponseTemplate::new(422).set_body_string("{\"error\":\"nope\"}"))
         .mount(&server)
         .await;
 
@@ -169,7 +170,7 @@ async fn whoami_returns_raw_json() {
 async fn history_returns_raw_json() {
     let server = MockServer::start().await;
     Mock::given(method("GET"))
-        .and(path("/api/v5/stimulus/sent-me"))
+        .and(path("/api/v5/stimulus/sent/me"))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "stimuli": [{ "stimulusType": "zap", "stimulusValue": 50 }]
         })))

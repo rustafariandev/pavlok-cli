@@ -2,14 +2,21 @@
 name = "pavlok-client"
 description = "Async client for the Pavlok v5 HTTP API"
 readme = "README.md"
+keywords = ["pavlok", "api-client", "wearable", "http"]
+categories = ["api-bindings", "asynchronous"]
 version.workspace = true
 edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
 
 [dependencies]
 anyhow.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-reqwest = { version = "0.13.4", default-features = false, features = ["json", "rustls", "http2", "charset"] }
+reqwest = { version = "0.13.4", default-features = false, features = ["json", "rustls-no-provider", "http2", "charset"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12", "logging"] }
 
 [dev-dependencies]
 tokio = { version = "1.52.3", features = ["rt-multi-thread", "macros"] }

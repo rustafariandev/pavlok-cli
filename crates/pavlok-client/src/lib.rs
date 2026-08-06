@@ -4,12 +4,33 @@
 //!   POST /api/v5/users/login    -> obtain a bearer token
 //!   POST /api/v5/stimulus/send  -> trigger zap/beep/vibe
 //!   GET  /api/v5/user           -> current account
-//!   GET  /api/v5/stimulus/sent-me -> recent stimuli received
+//!   GET  /api/v5/stimulus/sent/me -> recent stimuli received
+
+#![deny(missing_docs)]
 
 use anyhow::{Context, Result, bail};
 use serde::{Deserialize, Serialize};
 
+/// Base URL of the public Pavlok API, used by [`PavlokClient::new`].
 pub const DEFAULT_BASE_URL: &str = "https://api.pavlok.com";
+
+/// Install the `ring` rustls crypto provider exactly once per process.
+///
+/// We build reqwest with `rustls-no-provider` so that no C toolchain or cmake is
+/// needed to compile this crate; the tradeoff is that reqwest panics when
+/// constructing a `Client` if no provider has been installed. Doing it here
+/// keeps [`PavlokClient::new`] infallible for callers who know nothing about
+/// rustls.
+///
+/// An `Err` from `install_default` only means some other part of the process got
+/// there first, which is equally fine — a provider is installed either way — so
+/// it is deliberately ignored.
+fn install_crypto_provider() {
+    static TLS_PROVIDER: std::sync::Once = std::sync::Once::new();
+    TLS_PROVIDER.call_once(|| {
+        let _ = rustls::crypto::ring::default_provider().install_default();
+    });
+}
 
 /// The kinds of stimulus a Pavlok device can deliver.
 ///
@@ -19,12 +40,17 @@ pub const DEFAULT_BASE_URL: &str = "https://api.pavlok.com";
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum StimulusType {
+    /// A brief electric shock.
     Zap,
+    /// An audible tone.
     Beep,
+    /// A silent vibration.
     Vibe,
 }
 
 impl StimulusType {
+    /// The lowercase wire name the API uses for this stimulus (`"zap"`,
+    /// `"beep"`, `"vibe"`).
     pub fn as_str(self) -> &'static str {
         match self {
             StimulusType::Zap => "zap",
@@ -34,6 +60,11 @@ impl StimulusType {
     }
 }
 
+/// An async client for the Pavlok v5 HTTP API.
+///
+/// Construct one with [`PavlokClient::new`], or [`PavlokClient::with_base_url`]
+/// to point at a staging server or a mock. The token is optional so the same
+/// type can drive the unauthenticated [`login`](PavlokClient::login) flow.
 pub struct PavlokClient {
     http: reqwest::Client,
     token: Option<String>,
@@ -89,6 +120,7 @@ impl PavlokClient {
     /// Create a client against a custom base URL (e.g. a staging server or, in
     /// tests, a mock server). The URL should not have a trailing slash.
     pub fn with_base_url(base_url: impl Into<String>, token: Option<String>) -> Self {
+        install_crypto_provider();
         Self {
             http: reqwest::Client::new(),
             token,
@@ -101,9 +133,9 @@ impl PavlokClient {
     }
 
     fn require_token(&self) -> Result<&str> {
-        self.token.as_deref().context(
-            "no Pavlok token configured — run `pavlok login` or set PAVLOK_TOKEN",
-        )
+        self.token
+            .as_deref()
+            .context("no Pavlok token configured — run `pavlok-cli login` or set PAVLOK_TOKEN")
     }
 
     /// Exchange email/password for a bearer token.
@@ -176,7 +208,7 @@ impl PavlokClient {
         let token = self.require_token()?;
         let resp = self
             .http
-            .get(self.url("/api/v5/stimulus/sent-me"))
+            .get(self.url("/api/v5/stimulus/sent/me"))
             .bearer_auth(token)
             .send()
             .await

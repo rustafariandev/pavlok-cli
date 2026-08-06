@@ -3,11 +3,15 @@ resolver = "2"
 members = ["crates/pavlok-client", "crates/pavlok-cli"]
 
 [workspace.package]
-version = "0.1.0"
+version = "1.0.0"
 edition = "2024"
+license = "MIT"
+repository = "https://github.com/rustafariandev/pavlok-cli"
+homepage = "https://github.com/rustafariandev/pavlok-cli"
+rust-version = "1.88"
 
 [workspace.dependencies]
 anyhow = "1.0.103"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.150"
-pavlok-client = { path = "crates/pavlok-client" }
+pavlok-client = { path = "crates/pavlok-client", version = "1.0.0" }

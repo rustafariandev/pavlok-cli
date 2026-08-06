@@ -4,13 +4,22 @@ Command-line tool for the [Pavlok](https://pavlok.com) v5 API. Trigger your
 device's stimuli (zap / beep / vibe) from the terminal, and run as an **MCP
 server** so an AI assistant (e.g. Claude) can trigger stimuli through tool calls.
 
-Built on the [`pavlok-client`](../pavlok-client) library.
+Built on the
+[`pavlok-client`](https://github.com/rustafariandev/pavlok-cli/tree/main/crates/pavlok-client)
+library.
 
 ## Install
 
 ```sh
+cargo install pavlok-cli
+```
+
+Prebuilt binaries for Linux, macOS, and Windows are also attached to every
+[release](https://github.com/rustafariandev/pavlok-cli/releases). From a
+checkout of the workspace:
+
+```sh
 cargo install --path .
-# or, from a checkout of the workspace:
 cargo build --release   # binary at ../../target/release/pavlok-cli
 ```
 
@@ -61,5 +70,14 @@ Register with Claude Code:
 claude mcp add pavlok --env PAVLOK_TOKEN=your-token -- /absolute/path/to/pavlok-cli mcp
 ```
 
-See the [workspace README](../../README.md) for the full project overview and a
+Note that `--env PAVLOK_TOKEN=...` leaves the token in your shell history and in
+the MCP client's config file in plaintext; `pavlok-cli login` stores it at
+`~/.config/pavlok-cli/config.toml` (mode `0600`) instead, and the server reads it
+from there with no `--env` needed.
+
+See the [workspace README](https://github.com/rustafariandev/pavlok-cli) for the full project overview and a
 manual MCP client config example.
+
+## License
+
+MIT — see [LICENSE](LICENSE).

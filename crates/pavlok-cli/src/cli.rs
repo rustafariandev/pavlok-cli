@@ -23,7 +23,7 @@ impl McpTool {
 
 #[derive(Parser)]
 #[command(
-    name = "pavlok",
+    name = "pavlok-cli",
     version,
     about = "Control a Pavlok device from the terminal and expose it to AI via MCP"
 )]
