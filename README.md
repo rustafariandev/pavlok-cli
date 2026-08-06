@@ -71,10 +71,15 @@ export PAVLOK_TOKEN="your-token"
 pavlok-cli zap 50                 # electric stimulus, intensity 1-100 (default 50)
 pavlok-cli beep 30
 pavlok-cli vibe 40 --reason "pomodoro over"
-pavlok-cli whoami                 # print current account as JSON
+pavlok-cli whoami                 # summarise the logged-in account
+pavlok-cli whoami --all           # ...plus settings and profile details
+pavlok-cli whoami --json          # the raw API response, for scripting
 ```
 
 Intensity is validated to `1..=100` locally before any request is made.
+
+`whoami` never prints your API token, even though the endpoint echoes it back,
+so its output is safe to paste into a bug report.
 
 ## MCP server (for AI assistants)
 

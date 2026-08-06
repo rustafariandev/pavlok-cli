@@ -1,6 +1,7 @@
 mod cli;
 mod config;
 mod mcp;
+mod whoami;
 
 use std::io::{self, Write};
 use std::sync::Arc;
@@ -27,7 +28,7 @@ async fn main() -> Result<()> {
         Commands::Zap { value, reason } => stimulus(StimulusType::Zap, value, reason).await,
         Commands::Beep { value, reason } => stimulus(StimulusType::Beep, value, reason).await,
         Commands::Vibe { value, reason } => stimulus(StimulusType::Vibe, value, reason).await,
-        Commands::Whoami => whoami().await,
+        Commands::Whoami { json, all } => whoami::run(json, all).await,
         Commands::Mcp { tools } => serve_mcp(tools).await,
     }
 }
@@ -52,13 +53,6 @@ async fn stimulus(kind: StimulusType, value: u8, reason: Option<String>) -> Resu
     let client = PavlokClient::new(config::resolve_token()?);
     client.send_stimulus(kind, value, reason).await?;
     println!("Sent {} at intensity {}.", kind.as_str(), value);
-    Ok(())
-}
-
-async fn whoami() -> Result<()> {
-    let client = PavlokClient::new(Some(config::require_token()?));
-    let user = client.whoami().await?;
-    println!("{}", serde_json::to_string_pretty(&user)?);
     Ok(())
 }
 

@@ -4,6 +4,24 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+
+- **`pavlok-cli whoami` now prints a readable summary** instead of dumping the
+  raw API response. `--json` restores machine-readable output for scripting,
+  and `--all` adds the settings map and the profile fields most accounts leave
+  unset. Output is colourised on a terminal and plain when piped or when
+  `NO_COLOR` is set.
+
+### Security
+
+- `whoami` no longer prints the account's API token. The endpoint echoes the
+  bearer token back in every response, so the old JSON dump leaked a live
+  credential into anything a user pasted from their terminal. The token is now
+  stripped from both the summary and `--json`. The `token` field remains on
+  `pavlok_client::User` for library consumers.
+
 ## 1.0.0
 
 A complete rewrite. The version jumps straight from 0.1.0 (published January

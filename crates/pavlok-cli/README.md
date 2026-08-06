@@ -46,11 +46,28 @@ export PAVLOK_TOKEN="your-token"
 pavlok-cli zap 50                 # electric stimulus, intensity 1-100 (default 50)
 pavlok-cli beep 30
 pavlok-cli vibe 40 --reason "pomodoro over"
-pavlok-cli whoami                 # print current account as JSON
+pavlok-cli whoami                 # summarise the logged-in account
+pavlok-cli whoami --all           # ...plus settings and profile details
+pavlok-cli whoami --json          # the raw API response, for scripting
 pavlok-cli mcp                    # run as an MCP server over stdio
 ```
 
 Intensity is validated to `1..=100` locally before any request is made.
+
+`whoami` prints a short summary by default:
+
+```
+Granting Gray Zapdos
+  Name      Ada Lovelace
+  Email     ada@example.com (confirmed)
+  Account   #48213
+  Volts     151,920
+  Timezone  America/Toronto
+```
+
+Your API token is never printed, even though the endpoint echoes it back, so
+the output is safe to paste into a bug report. Colour is dropped automatically
+when stdout is not a terminal or when `NO_COLOR` is set.
 
 ## MCP server
 

@@ -297,7 +297,6 @@ impl PavlokClient {
         let resp = ensure_ok(resp).await?;
         resp.json().await.context("parsing user response")
     }
-
 }
 
 /// Turn a non-2xx response into an error that includes the server's body.

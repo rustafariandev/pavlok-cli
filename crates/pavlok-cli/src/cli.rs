@@ -65,8 +65,15 @@ pub enum Commands {
         #[arg(long)]
         reason: Option<String>,
     },
-    /// Print the current account as JSON
-    Whoami,
+    /// Show the logged-in account
+    Whoami {
+        /// Print the raw API response as JSON
+        #[arg(long)]
+        json: bool,
+        /// Include settings and rarely-set profile fields
+        #[arg(long, conflicts_with = "json")]
+        all: bool,
+    },
     /// Run as an MCP server over stdio (for AI assistants)
     Mcp {
         /// Restrict the server to these tools (comma-separated, e.g.
