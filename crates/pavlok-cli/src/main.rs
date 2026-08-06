@@ -28,7 +28,6 @@ async fn main() -> Result<()> {
         Commands::Beep { value, reason } => stimulus(StimulusType::Beep, value, reason).await,
         Commands::Vibe { value, reason } => stimulus(StimulusType::Vibe, value, reason).await,
         Commands::Whoami => whoami().await,
-        Commands::History => history().await,
         Commands::Mcp { tools } => serve_mcp(tools).await,
     }
 }
@@ -60,13 +59,6 @@ async fn whoami() -> Result<()> {
     let client = PavlokClient::new(Some(config::require_token()?));
     let user = client.whoami().await?;
     println!("{}", serde_json::to_string_pretty(&user)?);
-    Ok(())
-}
-
-async fn history() -> Result<()> {
-    let client = PavlokClient::new(Some(config::require_token()?));
-    let events = client.history().await?;
-    println!("{}", serde_json::to_string_pretty(&events)?);
     Ok(())
 }
 

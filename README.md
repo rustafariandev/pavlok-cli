@@ -72,7 +72,6 @@ pavlok-cli zap 50                 # electric stimulus, intensity 1-100 (default 
 pavlok-cli beep 30
 pavlok-cli vibe 40 --reason "pomodoro over"
 pavlok-cli whoami                 # print current account as JSON
-pavlok-cli history                # print recently received stimuli as JSON
 ```
 
 Intensity is validated to `1..=100` locally before any request is made.
@@ -86,8 +85,8 @@ PAVLOK_TOKEN="your-token" pavlok-cli mcp
 ```
 
 It exposes three tools — `zap`, `beep`, `vibe` — each taking an intensity
-`value` (1–100) and an optional `reason`. Account/history data is intentionally
-**not** exposed to the AI.
+`value` (1–100) and an optional `reason`. Account data is intentionally **not**
+exposed to the AI.
 
 Restrict which tools the server exposes with `--tools` (comma-separated). Any
 tool left out is removed from both `tools/list` and `tools/call`, so the AI can

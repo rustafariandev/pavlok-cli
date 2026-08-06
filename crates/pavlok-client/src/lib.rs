@@ -3,10 +3,11 @@
 //! Endpoints used:
 //!   POST /api/v5/users/login    -> obtain a bearer token
 //!   POST /api/v5/stimulus/send  -> trigger zap/beep/vibe
-//!   GET  /api/v5/user           -> current account
-//!   GET  /api/v5/stimulus/sent/me -> recent stimuli received
+//!   GET  /api/v5/user/          -> current account
 
 #![deny(missing_docs)]
+
+use std::collections::BTreeMap;
 
 use anyhow::{Context, Result, bail};
 use serde::{Deserialize, Serialize};
@@ -92,6 +93,100 @@ struct LoginResponse {
 #[derive(Deserialize)]
 struct LoginUser {
     token: String,
+}
+
+/// The response of [`PavlokClient::whoami`] — the current account plus its
+/// reward-point balance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WhoamiResponse {
+    /// The authenticated account.
+    pub user: User,
+    /// Reward points ("volts") the account has accumulated.
+    pub volts: i64,
+}
+
+/// A Pavlok account, as returned by `GET /api/v5/user/`.
+///
+/// The upstream API is undocumented and adds fields over time, so unknown
+/// fields are ignored and missing ones fall back to [`Default`] rather than
+/// failing the whole request.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", default)]
+pub struct User {
+    /// Numeric account id.
+    pub id: i64,
+    /// Display name; auto-generated (e.g. "Granting Gray Zapdos") until changed.
+    pub username: String,
+    /// Account email address.
+    pub email: String,
+    /// Bearer token for this account, echoed back by the endpoint.
+    pub token: String,
+    /// Phone number, without the [`country_code`](User::country_code).
+    pub phone: Option<String>,
+    /// Dialling code for [`phone`](User::phone), e.g. `"+1"`.
+    pub country_code: Option<String>,
+    /// Whether the phone number has been verified.
+    pub phone_confirmed: bool,
+    /// Given name.
+    pub first_name: Option<String>,
+    /// Family name.
+    pub last_name: Option<String>,
+    /// Date of birth, as sent by the API.
+    pub birth_date: Option<String>,
+    /// Body weight, in [`weight_measurement_unit`](User::weight_measurement_unit).
+    pub weight: Option<f64>,
+    /// Unit [`weight`](User::weight) is expressed in.
+    pub weight_measurement_unit: Option<String>,
+    /// Body height, in [`height_measurement_unit`](User::height_measurement_unit).
+    pub height: Option<f64>,
+    /// Unit [`height`](User::height) is expressed in.
+    pub height_measurement_unit: Option<String>,
+    /// Outstanding password-reset token, if a reset is in flight.
+    pub reset_password_token: Option<String>,
+    /// When the password-reset email was sent.
+    pub reset_password_sent_at: Option<String>,
+    /// Id of the uploaded profile picture.
+    pub profile_picture_id: Option<i64>,
+    /// Public URL of the profile picture.
+    pub profile_picture_url: Option<String>,
+    /// Whether the email address has been verified.
+    pub email_confirmed: bool,
+    /// Whether this is an anonymous (not fully registered) account.
+    pub anonymous: bool,
+    /// Account role, if the API assigned one.
+    pub role: Option<String>,
+    /// IANA timezone name, e.g. `"America/Toronto"`.
+    pub timezone: Option<String>,
+    /// Free-form answer to the "how did you hear about us" question.
+    pub heard_about_us: Option<String>,
+    /// Per-account settings, keyed by [`Setting::setting_key`].
+    pub settings: BTreeMap<String, Setting>,
+}
+
+/// One entry of [`User::settings`].
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", default)]
+pub struct Setting {
+    /// When the setting was created.
+    pub created_at: Option<String>,
+    /// When the setting was last updated.
+    pub updated_at: Option<String>,
+    /// When the setting was soft-deleted, if it was.
+    pub deleted_at: Option<String>,
+    /// Numeric id of the setting row.
+    pub id: i64,
+    /// The setting's name, matching its key in [`User::settings`].
+    pub setting_key: String,
+    /// The value, always sent as a string regardless of
+    /// [`setting_type`](Setting::setting_type).
+    pub setting_value: String,
+    /// How to interpret [`setting_value`](Setting::setting_value), e.g.
+    /// `"boolean"` or `"string"`.
+    pub setting_type: String,
+    /// Additional metadata; shape varies per setting.
+    pub setting_meta: serde_json::Value,
+    /// Id of the account the setting belongs to.
+    pub user_id: i64,
 }
 
 #[derive(Serialize)]
@@ -189,12 +284,12 @@ impl PavlokClient {
         Ok(())
     }
 
-    /// Fetch the current account. Shape is undocumented, so returned as raw JSON.
-    pub async fn whoami(&self) -> Result<serde_json::Value> {
+    /// Fetch the current account, as a [`WhoamiResponse`].
+    pub async fn whoami(&self) -> Result<WhoamiResponse> {
         let token = self.require_token()?;
         let resp = self
             .http
-            .get(self.url("/api/v5/user"))
+            .get(self.url("/api/v5/user/"))
             .bearer_auth(token)
             .send()
             .await
@@ -203,19 +298,6 @@ impl PavlokClient {
         resp.json().await.context("parsing user response")
     }
 
-    /// Fetch recently received stimuli. Returned as raw JSON.
-    pub async fn history(&self) -> Result<serde_json::Value> {
-        let token = self.require_token()?;
-        let resp = self
-            .http
-            .get(self.url("/api/v5/stimulus/sent/me"))
-            .bearer_auth(token)
-            .send()
-            .await
-            .context("history request failed")?;
-        let resp = ensure_ok(resp).await?;
-        resp.json().await.context("parsing history response")
-    }
 }
 
 /// Turn a non-2xx response into an error that includes the server's body.

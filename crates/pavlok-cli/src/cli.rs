@@ -67,8 +67,6 @@ pub enum Commands {
     },
     /// Print the current account as JSON
     Whoami,
-    /// Print recently received stimuli as JSON
-    History,
     /// Run as an MCP server over stdio (for AI assistants)
     Mcp {
         /// Restrict the server to these tools (comma-separated, e.g.

@@ -47,7 +47,6 @@ pavlok-cli zap 50                 # electric stimulus, intensity 1-100 (default 
 pavlok-cli beep 30
 pavlok-cli vibe 40 --reason "pomodoro over"
 pavlok-cli whoami                 # print current account as JSON
-pavlok-cli history                # print recently received stimuli as JSON
 pavlok-cli mcp                    # run as an MCP server over stdio
 ```
 
@@ -60,8 +59,8 @@ PAVLOK_TOKEN="your-token" pavlok-cli mcp
 ```
 
 Exposes three tools — `zap`, `beep`, `vibe` — each taking an intensity `value`
-(1–100) and an optional `reason`. Account/history data is intentionally **not**
-exposed to the AI. All logging goes to stderr so the JSON-RPC on stdout is never
+(1–100) and an optional `reason`. Account data is intentionally **not** exposed
+to the AI. All logging goes to stderr so the JSON-RPC on stdout is never
 corrupted.
 
 Register with Claude Code:

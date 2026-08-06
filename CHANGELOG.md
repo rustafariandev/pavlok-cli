@@ -15,10 +15,14 @@ A complete rewrite. The version jumps straight from 0.1.0 (published January
 - **MCP server mode** — `pavlok-cli mcp` runs a [Model Context
   Protocol](https://modelcontextprotocol.io) server over stdio, letting an AI
   assistant trigger stimuli as tool calls. `--tools zap,beep,vibe` restricts
-  which stimuli are exposed; `whoami` and `history` are deliberately never
-  exposed as tools.
+  which stimuli are exposed; account data is deliberately never exposed as a
+  tool.
 - **`pavlok-client`** — the API client is now a separate, reusable library crate
-  published alongside the CLI.
+  published alongside the CLI. `whoami()` returns a typed `WhoamiResponse` — a
+  `User` (including a `settings` map of `Setting` records) plus the volts
+  balance — with camelCase wire names handled by serde. Unknown fields are
+  ignored and missing ones fall back to their defaults, so additions to the
+  undocumented upstream API do not break the parse.
 - Prebuilt binaries for Linux, macOS, and Windows attached to each GitHub
   release, so a Rust toolchain is no longer required to install.
 - `pavlok-cli login` stores the token at `~/.config/pavlok-cli/config.toml` with
@@ -33,8 +37,6 @@ A complete rewrite. The version jumps straight from 0.1.0 (published January
 
 ### Fixed
 
-- The stimulus history endpoint now requests `/api/v5/stimulus/sent/me`; the
-  previous `/api/v5/stimulus/sent-me` path was incorrect.
 - `--help` output and error messages now refer to `pavlok-cli`, which is the
   actual installed binary name. They previously said `pavlok`, a command that
   does not exist.

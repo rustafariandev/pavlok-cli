@@ -3,9 +3,8 @@
 A small async Rust client for the [Pavlok](https://pavlok.com) v5 HTTP API.
 
 It wraps the endpoints needed to authenticate and drive a Pavlok device — send
-stimuli (zap / beep / vibe), read the current account, and list recently
-received stimuli — with a minimal dependency footprint (just `reqwest` +
-`serde`). It powers the
+stimuli (zap / beep / vibe) and read the current account — with a minimal
+dependency footprint (just `reqwest` + `serde`). It powers the
 [`pavlok-cli`](https://github.com/rustafariandev/pavlok-cli/tree/main/crates/pavlok-cli)
 binary but is usable on its own.
 
@@ -40,10 +39,9 @@ async fn main() -> anyhow::Result<()> {
         .send_stimulus(StimulusType::Vibe, 40, Some("break time".into()))
         .await?;
 
-    // Read account / history as raw JSON (shapes are undocumented upstream).
-    let user = client.whoami().await?;
-    let history = client.history().await?;
-    println!("{user}\n{history}");
+    // Read the current account.
+    let me = client.whoami().await?;
+    println!("{} has {} volts", me.user.username, me.volts);
 
     Ok(())
 }
@@ -57,8 +55,7 @@ async fn main() -> anyhow::Result<()> {
 | `PavlokClient::with_base_url(url, token)` | Client against a custom base URL (staging or a mock server in tests). |
 | `login(email, password) -> String` | Obtain a bearer token. |
 | `send_stimulus(kind, value, reason)` | Send a zap/beep/vibe; `value` is validated to `1..=100` before any request. |
-| `whoami() -> serde_json::Value` | Fetch the current account. |
-| `history() -> serde_json::Value` | Fetch recently received stimuli. |
+| `whoami() -> WhoamiResponse` | Fetch the current account (typed `User` plus the volts balance). |
 
 `StimulusType` (`Zap` / `Beep` / `Vibe`) serializes to the lowercase strings the
 API expects and is the single source of truth for the stimulus kinds.

@@ -150,34 +150,75 @@ async fn api_error_surfaces_status_and_body() {
 }
 
 #[tokio::test]
-async fn whoami_returns_raw_json() {
+async fn whoami_parses_user_response() {
     let server = MockServer::start().await;
+    // Abridged from a real response; the endpoint is served at a trailing slash.
     Mock::given(method("GET"))
-        .and(path("/api/v5/user"))
+        .and(path("/api/v5/user/"))
         .and(header("authorization", "Bearer tok"))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
-            "user": { "id": 7, "email": "me@example.com" }
+            "user": {
+                "id": 173,
+                "username": "Granting Gray Zapdos",
+                "email": "me@example.com",
+                "token": "tok",
+                "phone": null,
+                "countryCode": "+1",
+                "phoneConfirmed": false,
+                "firstName": "Ada",
+                "lastName": "Lovelace",
+                "emailConfirmed": false,
+                "anonymous": true,
+                "role": null,
+                "timezone": "America/Toronto",
+                "profilePictureId": 918,
+                "settings": {
+                    "preferred_language": {
+                        "createdAt": "2015-09-08T08:52:33.454443Z",
+                        "updatedAt": "2023-07-11T14:00:20.477885Z",
+                        "deletedAt": null,
+                        "id": 173,
+                        "settingKey": "preferred_language",
+                        "settingValue": "en",
+                        "settingType": "string",
+                        "settingMeta": {},
+                        "userId": 173
+                    }
+                }
+            },
+            "volts": 151920
         })))
         .mount(&server)
         .await;
 
     let client = PavlokClient::with_base_url(server.uri(), Some("tok".into()));
-    let value = client.whoami().await.unwrap();
-    assert_eq!(value["user"]["id"], 7);
+    let resp = client.whoami().await.unwrap();
+    assert_eq!(resp.user.id, 173);
+    assert_eq!(resp.user.email, "me@example.com");
+    assert_eq!(resp.user.first_name.as_deref(), Some("Ada"));
+    assert_eq!(resp.user.phone, None);
+    assert!(resp.user.anonymous);
+    assert_eq!(resp.volts, 151920);
+    assert_eq!(resp.user.settings["preferred_language"].setting_value, "en");
 }
 
 #[tokio::test]
-async fn history_returns_raw_json() {
+async fn whoami_tolerates_missing_and_unknown_fields() {
+    // The upstream shape is undocumented: absent fields must fall back to their
+    // defaults and newly added ones must be ignored, not fail the request.
     let server = MockServer::start().await;
     Mock::given(method("GET"))
-        .and(path("/api/v5/stimulus/sent/me"))
+        .and(path("/api/v5/user/"))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
-            "stimuli": [{ "stimulusType": "zap", "stimulusValue": 50 }]
+            "user": { "id": 1, "somethingNewUpstream": ["anything"] },
+            "volts": 0
         })))
         .mount(&server)
         .await;
 
     let client = PavlokClient::with_base_url(server.uri(), Some("tok".into()));
-    let value = client.history().await.unwrap();
-    assert_eq!(value["stimuli"][0]["stimulusType"], "zap");
+    let resp = client.whoami().await.unwrap();
+    assert_eq!(resp.user.id, 1);
+    assert_eq!(resp.user.email, "");
+    assert!(resp.user.settings.is_empty());
 }

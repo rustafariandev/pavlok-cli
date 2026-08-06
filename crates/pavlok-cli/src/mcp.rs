@@ -1,7 +1,7 @@
 //! MCP server exposing the Pavlok stimuli (zap/beep/vibe) as tools.
 //!
-//! Only the stimulus actions are exposed — account/history data is deliberately
-//! kept off the AI-facing surface.
+//! Only the stimulus actions are exposed — account data is deliberately kept
+//! off the AI-facing surface.
 
 use std::sync::Arc;
 
