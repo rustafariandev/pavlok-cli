@@ -8,6 +8,7 @@
 #![deny(missing_docs)]
 
 use std::collections::BTreeMap;
+use std::time::Duration;
 
 use anyhow::{Context, Result, bail};
 use serde::{Deserialize, Serialize};
@@ -216,10 +217,17 @@ impl PavlokClient {
     /// tests, a mock server). The URL should not have a trailing slash.
     pub fn with_base_url(base_url: impl Into<String>, token: Option<String>) -> Self {
         install_crypto_provider();
+        let http = reqwest::Client::builder()
+            .timeout(Duration::from_secs(15))
+            .connect_timeout(Duration::from_secs(5))
+            .user_agent(concat!("pavlok-cli/", env!("CARGO_PKG_VERSION")))
+            .build()
+            .expect("reqwest client builder with rustls should not fail");
+        let base_url: String = base_url.into().trim_end_matches('/').to_string();
         Self {
-            http: reqwest::Client::new(),
+            http,
             token,
-            base_url: base_url.into(),
+            base_url,
         }
     }
 
@@ -306,5 +314,16 @@ async fn ensure_ok(resp: reqwest::Response) -> Result<reqwest::Response> {
         return Ok(resp);
     }
     let body = resp.text().await.unwrap_or_default();
+    let body = truncate_body(&body);
     bail!("Pavlok API error {status}: {body}");
+}
+
+/// Truncate a response body to ~1 KiB for error reporting.
+fn truncate_body(body: &str) -> String {
+    const LIMIT: usize = 1024;
+    if body.len() <= LIMIT {
+        body.to_string()
+    } else {
+        format!("{}…[truncated]", &body[..LIMIT])
+    }
 }

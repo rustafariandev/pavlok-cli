@@ -16,10 +16,10 @@ use cli::{Cli, Commands};
 #[tokio::main]
 async fn main() -> Result<()> {
     // Log to stderr; stdout is reserved for MCP JSON-RPC and command output.
-    tracing_subscriber::fmt()
+    let _ = tracing_subscriber::fmt()
         .with_writer(io::stderr)
         .with_target(false)
-        .init();
+        .try_init();
 
     let cli = Cli::parse();
 
@@ -75,6 +75,9 @@ fn prompt(label: &str) -> Result<String> {
     eprint!("{label}");
     io::stderr().flush()?;
     let mut line = String::new();
-    io::stdin().read_line(&mut line)?;
+    let n = io::stdin().read_line(&mut line)?;
+    if n == 0 && line.is_empty() {
+        anyhow::bail!("no input (EOF) — expected {}", label.trim_end());
+    }
     Ok(line.trim().to_string())
 }

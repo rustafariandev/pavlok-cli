@@ -30,6 +30,20 @@ impl Config {
         if !path.exists() {
             return Ok(Config::default());
         }
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            if let Ok(meta) = fs::metadata(&path) {
+                let mode = meta.permissions().mode() & 0o777;
+                if mode != 0o600 {
+                    eprintln!(
+                        "warning: config at {} has permissions {:03o}, expected 600",
+                        path.display(),
+                        mode
+                    );
+                }
+            }
+        }
         let text = fs::read_to_string(&path)
             .with_context(|| format!("reading config at {}", path.display()))?;
         toml::from_str(&text).with_context(|| format!("parsing config at {}", path.display()))
