@@ -49,13 +49,21 @@ cargo build --release
 
 ## Authentication
 
-Log in once to store a bearer token at `~/.config/pavlok-cli/config.toml`
-(written `0600`):
+Log in once to store a bearer token in the user config directory (created with
+mode `0700`, and the file itself with `0600`, on Unix):
 
 ```sh
 pavlok-cli login              # prompts for email + password
 pavlok-cli login --email you@example.com
 ```
+
+The location depends on the platform:
+
+| Platform | Path |
+|---|---|
+| Linux   | `~/.config/pavlok-cli/config.toml` |
+| macOS   | `~/Library/Application Support/com.pavlok.pavlok-cli/config.toml` |
+| Windows | `%APPDATA%\pavlok\pavlok-cli\config\config.toml` |
 
 Alternatively, skip the login flow and provide a token directly via the
 `PAVLOK_TOKEN` environment variable, which always takes priority over the config
@@ -129,8 +137,8 @@ Or add it to a client's MCP config manually:
   `export PAVLOK_TOKEN=...` forms above are convenient, but they leave a bearer
   token in your shell history and, for the `claude mcp add` case, in the MCP
   client's config file in plaintext. Prefer `pavlok-cli login`, which stores the
-  token at `~/.config/pavlok-cli/config.toml` with `0600` permissions; the MCP
-  server picks it up from there with no `--env` needed.
+  token in the user config directory with `0600` permissions; the MCP server
+  picks it up from there with no `--env` needed.
 - All logging goes to **stderr**; stdout carries only command output and MCP
   JSON-RPC, so the protocol is never corrupted.
 - TLS uses `rustls` with the pure-Rust `ring` backend — no cmake, no system

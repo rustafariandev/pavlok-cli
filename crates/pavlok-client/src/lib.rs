@@ -319,11 +319,19 @@ async fn ensure_ok(resp: reqwest::Response) -> Result<reqwest::Response> {
 }
 
 /// Truncate a response body to ~1 KiB for error reporting.
+///
+/// The cut is walked back to the nearest char boundary: slicing a `str` at an
+/// arbitrary byte index panics, and an error body is exactly the place where
+/// unexpected multi-byte text shows up.
 fn truncate_body(body: &str) -> String {
     const LIMIT: usize = 1024;
     if body.len() <= LIMIT {
         body.to_string()
     } else {
-        format!("{}…[truncated]", &body[..LIMIT])
+        let end = (0..=LIMIT)
+            .rev()
+            .find(|&i| body.is_char_boundary(i))
+            .unwrap_or(0);
+        format!("{}…[truncated]", &body[..end])
     }
 }

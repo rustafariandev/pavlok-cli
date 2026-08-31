@@ -4,7 +4,7 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 1.0.0 - 2026-08-19
+## 1.0.0 - 2026-08-30
 
 A complete rewrite. The version jumps straight from 0.1.0 (published January
 2023) to 1.0.0 because essentially nothing is shared with that release; the
@@ -45,6 +45,11 @@ A complete rewrite. The version jumps straight from 0.1.0 (published January
 - `--help` output and error messages now refer to `pavlok-cli`, which is the
   actual installed binary name. They previously said `pavlok`, a command that
   does not exist.
+- An API error body longer than 1 KiB no longer panics while being truncated.
+  The cut was made at a byte offset, so a multi-byte character straddling byte
+  1024 aborted the process — including mid-session in the MCP server.
+- `beep --help` and `vibe --help` now describe `--reason`, which was documented
+  only for `zap`.
 
 ### Security
 
@@ -53,3 +58,6 @@ A complete rewrite. The version jumps straight from 0.1.0 (published January
   credential into anything a user pasted from their terminal. The token is now
   stripped from both the summary and `--json`. The `token` field remains on
   `pavlok_client::User` for library consumers.
+- The config file is created with mode `0600` rather than being written and
+  chmod'd afterwards, closing the window in which the token sat on disk at the
+  umask default. Its parent directory is created `0700`.

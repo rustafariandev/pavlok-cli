@@ -71,3 +71,22 @@ jobs:
           checksum: sha256
           include: README.md,LICENSE
           token: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-crates:
+    # Gated on the GitHub release so a tag that fails validation never reaches
+    # crates.io, where a publish can only be yanked, never undone.
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      # Order matters: pavlok-cli's path dependency on pavlok-client is
+      # rewritten to a registry dependency at publish time, so the library has
+      # to exist on crates.io first. `cargo publish` blocks until the index
+      # has caught up, so no sleep between the two is needed.
+      - run: cargo publish -p pavlok-client --locked
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+      - run: cargo publish -p pavlok-cli --locked
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}

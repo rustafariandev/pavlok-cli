@@ -27,6 +27,11 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo fmt --all --check
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      # Catch a broken include/path-dependency here rather than at tag time.
+      # `cargo package`, not `publish --dry-run`: the dry run resolves
+      # pavlok-cli's dependency on pavlok-client against the registry, which
+      # fails whenever the workspace is ahead of what is published.
+      - run: cargo package --workspace --locked
 
   test:
     name: test (${{ matrix.os }})
@@ -34,9 +39,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Windows is not optional: config.rs guards the 0600 chmod behind
-        # #[cfg(unix)], so the Windows branch of that function is never
-        # type-checked on Linux. macOS covers the other cfg(unix) paths.
+        # Windows is not optional: config.rs has cfg(unix)/cfg(not(unix))
+        # branches for write_private and the 0600/0700 permission handling, so
+        # the Windows branch is never type-checked on Linux. macOS covers the
+        # other cfg(unix) paths.
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4

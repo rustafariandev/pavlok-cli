@@ -150,6 +150,33 @@ async fn api_error_surfaces_status_and_body() {
 }
 
 #[tokio::test]
+async fn api_error_truncates_multibyte_body_without_panicking() {
+    // 3-byte chars, so the 1 KiB cut (byte 1024) lands mid-character: 341 * 3
+    // is 1023 and 342 * 3 is 1026. Byte-slicing here used to panic.
+    let body = "\u{20ac}".repeat(400);
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/api/v5/stimulus/send"))
+        .respond_with(ResponseTemplate::new(500).set_body_string(body))
+        .mount(&server)
+        .await;
+
+    let client = PavlokClient::with_base_url(server.uri(), Some("tok".into()));
+    let err = client
+        .send_stimulus(StimulusType::Zap, 10, None)
+        .await
+        .unwrap_err();
+    let msg = err.to_string();
+    assert!(msg.contains("500"), "should include status, got: {msg}");
+    assert!(
+        msg.ends_with("\u{2026}[truncated]"),
+        "should be truncated, got: {msg}"
+    );
+    // Cut back to the last boundary at or below 1024, i.e. 341 whole chars.
+    assert_eq!(msg.matches('\u{20ac}').count(), 341);
+}
+
+#[tokio::test]
 async fn whoami_parses_user_response() {
     let server = MockServer::start().await;
     // Abridged from a real response; the endpoint is served at a trailing slash.

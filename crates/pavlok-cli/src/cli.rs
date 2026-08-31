@@ -54,6 +54,7 @@ pub enum Commands {
         /// Intensity, 1-100
         #[arg(default_value_t = 50)]
         value: u8,
+        /// Optional reason/label recorded with the stimulus
         #[arg(long)]
         reason: Option<String>,
     },
@@ -62,6 +63,7 @@ pub enum Commands {
         /// Intensity, 1-100
         #[arg(default_value_t = 50)]
         value: u8,
+        /// Optional reason/label recorded with the stimulus
         #[arg(long)]
         reason: Option<String>,
     },

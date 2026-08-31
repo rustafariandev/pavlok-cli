@@ -25,13 +25,21 @@ cargo build --release   # binary at ../../target/release/pavlok-cli
 
 ## Authentication
 
-Log in once to store a bearer token at `~/.config/pavlok-cli/config.toml`
-(written `0600`):
+Log in once to store a bearer token in the user config directory (created with
+mode `0700`, and the file itself with `0600`, on Unix):
 
 ```sh
 pavlok-cli login                        # prompts for email + password
 pavlok-cli login --email you@example.com
 ```
+
+The location depends on the platform:
+
+| Platform | Path |
+|---|---|
+| Linux   | `~/.config/pavlok-cli/config.toml` |
+| macOS   | `~/Library/Application Support/com.pavlok.pavlok-cli/config.toml` |
+| Windows | `%APPDATA%\pavlok\pavlok-cli\config\config.toml` |
 
 Or provide a token directly via `PAVLOK_TOKEN`, which always takes priority over
 the config file:
@@ -87,9 +95,9 @@ claude mcp add pavlok --env PAVLOK_TOKEN=your-token -- /absolute/path/to/pavlok-
 ```
 
 Note that `--env PAVLOK_TOKEN=...` leaves the token in your shell history and in
-the MCP client's config file in plaintext; `pavlok-cli login` stores it at
-`~/.config/pavlok-cli/config.toml` (mode `0600`) instead, and the server reads it
-from there with no `--env` needed.
+the MCP client's config file in plaintext; `pavlok-cli login` stores it in the
+user config directory (mode `0600`) instead, and the server reads it from there
+with no `--env` needed.
 
 See the [workspace README](https://github.com/rustafariandev/pavlok-cli) for the full project overview and a
 manual MCP client config example.
