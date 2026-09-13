@@ -60,7 +60,7 @@ jobs:
       - uses: actions/checkout@v4
       # Must match rust-version in [workspace.package]. The floor comes from
       # darling (via schemars derive), not from edition 2024's 1.85.
-      - uses: dtolnay/rust-toolchain@1.88
+      - uses: dtolnay/rust-toolchain@1.120
       - uses: Swatinem/rust-cache@v2
         with:
           key: msrv
